@@ -32,8 +32,12 @@ def detect_transfers_and_duplicates(df: pd.DataFrame, rules_path: Path) -> pd.Da
     tolerance = float(rules.get("amount_matching_tolerance", 0.01))
 
     work = df.copy()
+    if "Notes" not in work.columns:
+        work["Notes"] = ""
+    work["Notes"] = work["Notes"].fillna("").astype(str)
     if "Matched Transaction ID" not in work.columns:
         work["Matched Transaction ID"] = ""
+    work["Matched Transaction ID"] = work["Matched Transaction ID"].fillna("").astype(str)
 
     work["_tx_date"] = pd.to_datetime(work["Transaction Date"], errors="coerce")
 

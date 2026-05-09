@@ -109,7 +109,7 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
         total_income=round(total_income, 2),
         total_spending=round(total_spending, 2),
         net_cash_flow=round(net_cash_flow, 2),
-        savings_rate=round(savings_rate, 4),
+        savings_rate=savings_rate,
         necessary_spending=round(necessary_spending, 2),
         possibly_unnecessary_spending=round(possibly_unnecessary_spending, 2),
         unnecessary_spending=round(unnecessary_spending, 2),

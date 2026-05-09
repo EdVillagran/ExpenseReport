@@ -39,6 +39,7 @@ def test_missing_required_columns_raises():
 
 def test_invalid_amount_flagged():
     df = _base_df()
+    df["Amount"] = df["Amount"].astype(object)
     df.loc[0, "Amount"] = "bad"
     _, issues = validate_transactions(df)
     assert (issues["Issue"] == "Invalid amount").any()
