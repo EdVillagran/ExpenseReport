@@ -1,0 +1,132 @@
+rules:
+  - category: Groceries
+    subcategory: Grocery Stores
+    confidence: 0.95
+    reason: Matched grocery merchant pattern.
+    patterns: [walmart, costco, aldi, jewel, meijer, sam's club]
+
+  - category: Restaurants
+    subcategory: Dining Out
+    confidence: 0.9
+    reason: Matched restaurant keyword.
+    patterns: [restaurant, cafe, grill, pizza, doordash, ubereats]
+
+  - category: Utilities
+    subcategory: Electric / Gas / Water
+    confidence: 0.95
+    reason: Matched utility provider.
+    patterns: [comed, nicor, utility, electric, water bill]
+
+  - category: Mortgage / Rent
+    subcategory: Housing
+    confidence: 0.95
+    reason: Matched mortgage or rent payment.
+    patterns: [mortgage, rent]
+
+  - category: Insurance
+    subcategory: Home / Auto / Health Insurance
+    confidence: 0.95
+    reason: Matched insurance keyword.
+    patterns: [insurance, geico, progressive, state farm]
+
+  - category: Gas / Transportation
+    subcategory: Fuel
+    confidence: 0.9
+    reason: Matched fuel merchant.
+    patterns: [shell, bp, exxon, chevron, gas station]
+
+  - category: Home Improvement
+    subcategory: Home Supplies
+    confidence: 0.85
+    reason: Matched home improvement merchant.
+    patterns: [home depot, lowes, menards]
+
+  - category: Subscriptions
+    subcategory: Streaming / Digital
+    confidence: 0.9
+    reason: Matched subscription merchant.
+    patterns: [netflix, spotify, hulu, disney, apple, google]
+
+  - category: Medical
+    subcategory: Healthcare
+    confidence: 0.9
+    reason: Matched medical keyword.
+    patterns: [pharmacy, clinic, hospital, medical]
+
+  - category: Child / Family
+    subcategory: Childcare / School
+    confidence: 0.85
+    reason: Matched family related keyword.
+    patterns: [daycare, school, tuition, kids]
+
+  - category: Pet Expenses
+    subcategory: Pet Food / Care
+    confidence: 0.9
+    reason: Matched pet merchant.
+    patterns: [chewy, petsmart, petco, vet]
+
+  - category: Fitness / Health
+    subcategory: Gym / Wellness
+    confidence: 0.85
+    reason: Matched fitness keyword.
+    patterns: [gym, fitness, ymca]
+
+  - category: Entertainment
+    subcategory: Leisure
+    confidence: 0.8
+    reason: Matched entertainment keyword.
+    patterns: [movie, theater, concert, gaming]
+
+  - category: Shopping
+    subcategory: General Merchandise
+    confidence: 0.8
+    reason: Matched shopping merchant.
+    patterns: [amazon, target, etsy, ebay]
+
+  - category: Debt Payments
+    subcategory: Loan / Card Payment
+    confidence: 0.85
+    reason: Matched debt payment keyword.
+    patterns: [loan payment, card payment, autopay]
+
+  - category: Savings / Investments
+    subcategory: Savings Contribution
+    confidence: 0.9
+    reason: Matched savings or investment keyword.
+    patterns: [brokerage, investment, savings transfer]
+
+  - category: Transfers
+    subcategory: Internal Transfer
+    confidence: 0.95
+    reason: Matched transfer keyword.
+    patterns: [transfer]
+
+  - category: Fees
+    subcategory: Bank Fee
+    confidence: 0.95
+    reason: Matched fee keyword.
+    patterns: [fee, overdraft, late fee]
+
+  - category: Refunds / Credits
+    subcategory: Refund
+    confidence: 0.95
+    reason: Matched refund keyword.
+    patterns: [refund, reversal, credit back]
+
+  - category: Income
+    subcategory: Salary / Deposit
+    confidence: 0.95
+    reason: Matched income keyword.
+    patterns: [payroll, salary, paycheck, direct deposit]
+
+  - category: Other
+    subcategory: Miscellaneous
+    confidence: 0.5
+    reason: Matched generic other keyword.
+    patterns: [misc, other]
+
+  - category: Needs Review
+    subcategory: Needs Review
+    confidence: 0.3
+    reason: No specific rule matched.
+    patterns: []
