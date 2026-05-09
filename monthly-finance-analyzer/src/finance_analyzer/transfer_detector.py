@@ -5,11 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from .config import load_yaml
-
-
-def _contains_any(text: str, keywords: list[str]) -> bool:
-    lowered = text.lower()
-    return any(keyword.lower() in lowered for keyword in keywords)
+from .keyword_match import contains_any
 
 
 def _append_note(existing: str, note: str) -> str:
@@ -45,17 +41,17 @@ def detect_transfers_and_duplicates(df: pd.DataFrame, rules_path: Path) -> pd.Da
         desc = f"{row.get('Raw Description', '')} {row.get('Cleaned Merchant', '')}".lower()
         amount = float(row.get("Amount", 0.0) or 0.0)
 
-        if _contains_any(desc, fee_keywords) and amount < 0:
+        if contains_any(desc, fee_keywords) and amount < 0:
             work.at[idx, "Type"] = "Fee"
             work.at[idx, "Include in Spending"] = "Include"
             work.at[idx, "Notes"] = _append_note(str(row.get("Notes", "")), "Classified as fee/interest")
 
-        if _contains_any(desc, refund_keywords) and amount > 0:
+        if contains_any(desc, refund_keywords) and amount > 0:
             work.at[idx, "Type"] = "Refund"
             work.at[idx, "Include in Spending"] = "Offset"
             work.at[idx, "Notes"] = _append_note(str(row.get("Notes", "")), "Classified as refund")
 
-        if _contains_any(desc, reversal_keywords):
+        if contains_any(desc, reversal_keywords):
             work.at[idx, "Type"] = "Reversal"
             work.at[idx, "Include in Spending"] = "Exclude"
             work.at[idx, "Notes"] = _append_note(str(row.get("Notes", "")), "Classified as reversal")
@@ -84,7 +80,7 @@ def detect_transfers_and_duplicates(df: pd.DataFrame, rules_path: Path) -> pd.Da
             combined = f"{left_desc} {right_desc}"
 
             is_opposite = left_amt * right_amt < 0
-            if is_opposite and _contains_any(combined, payment_keywords):
+            if is_opposite and contains_any(combined, payment_keywords):
                 for idx in [left_idx, right_idx]:
                     work.at[idx, "Type"] = "Payment"
                     work.at[idx, "Include in Spending"] = "Exclude"
@@ -94,7 +90,7 @@ def detect_transfers_and_duplicates(df: pd.DataFrame, rules_path: Path) -> pd.Da
                     work.at[idx, "Notes"] = _append_note(str(work.at[idx, "Notes"]), "Matched as credit card payment")
                 continue
 
-            if is_opposite and _contains_any(combined, transfer_keywords):
+            if is_opposite and contains_any(combined, transfer_keywords):
                 for idx in [left_idx, right_idx]:
                     work.at[idx, "Type"] = "Transfer"
                     work.at[idx, "Include in Spending"] = "Exclude"

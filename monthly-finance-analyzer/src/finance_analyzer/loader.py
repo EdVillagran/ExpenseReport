@@ -12,16 +12,29 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"\s+", " ", str(name).strip()).lower()
 
 
-def _account_short_name(account: str, index: int = 1) -> str:
-    value = str(account or "").lower()
-    if "checking" in value:
-        return "CHK"
-    if "savings" in value:
-        return "SVG"
-    if "credit" in value or "card" in value:
-        return f"CC{index}"
-    cleaned = re.sub(r"[^A-Za-z0-9]", "", value).upper()
-    return (cleaned[:3] or "ACC").ljust(3, "X")
+def _build_account_short_map(accounts: "pd.Series[str]") -> dict[str, str]:
+    """Assign a stable short code to each unique account name.
+
+    Credit card accounts get CC1, CC2, … in first-seen order.
+    Checking → CHK, Savings → SVG, everything else → first 3 alphanum chars.
+    """
+    result: dict[str, str] = {}
+    cc_counter = 0
+    for account in accounts.astype(str):
+        key = account.lower().strip()
+        if key in result:
+            continue
+        if "checking" in key:
+            result[key] = "CHK"
+        elif "savings" in key:
+            result[key] = "SVG"
+        elif "credit" in key or "card" in key:
+            cc_counter += 1
+            result[key] = f"CC{cc_counter}"
+        else:
+            cleaned = re.sub(r"[^A-Za-z0-9]", "", key).upper()
+            result[key] = (cleaned[:3] or "ACC").ljust(3, "X")
+    return result
 
 
 def load_transactions(input_path: Path) -> pd.DataFrame:
@@ -38,19 +51,13 @@ def load_transactions(input_path: Path) -> pd.DataFrame:
     ordered["Original Row Number"] = ordered.index + 2
     ordered["_month_safe"] = ordered["Month"].astype(str).str.strip()
 
-    account_counters: dict[str, int] = {}
-    account_short_values = []
-    for account in ordered["Account"].astype(str):
-        key = account.lower().strip()
-        account_counters.setdefault(key, 0)
-        if "credit" in key or "card" in key:
-            account_counters[key] += 1
-            short = _account_short_name(account, account_counters[key])
-        else:
-            short = _account_short_name(account)
-        account_short_values.append(short)
+    # Build a stable account → short-code map before assigning Transaction IDs so
+    # every row belonging to the same account always gets the same prefix.
+    account_short_map = _build_account_short_map(ordered["Account"])
+    ordered["Account Short"] = [
+        account_short_map[str(a).lower().strip()] for a in ordered["Account"].astype(str)
+    ]
 
-    ordered["Account Short"] = account_short_values
     ordered["Transaction ID"] = [
         f"{month}-{short}-{row_num:03d}"
         for month, short, row_num in zip(

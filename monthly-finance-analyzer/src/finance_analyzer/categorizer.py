@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from .config import load_yaml
+from .keyword_match import keyword_matches
 
 
 def _append_note(existing: str, note: str) -> str:
@@ -31,7 +32,7 @@ def categorize_transactions(df: pd.DataFrame, rules_path: Path) -> pd.DataFrame:
         matched_rule = None
         for rule in rules:
             patterns = [str(p).lower() for p in rule.get("patterns", [])]
-            if patterns and any(pattern in desc for pattern in patterns):
+            if patterns and any(keyword_matches(desc, pattern) for pattern in patterns):
                 matched_rule = rule
                 break
 

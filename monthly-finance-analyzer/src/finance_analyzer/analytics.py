@@ -22,8 +22,18 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
     include_spending = work[include_spending_mask]
 
     total_income = _safe_sum(work.loc[work["Type"] == "Income", "Amount"])
-    total_spending = abs(_safe_sum(include_spending["Amount"]))
-    net_cash_flow = total_income - total_spending
+
+    # Gross spending: all included expenses and fees before subtracting refunds.
+    gross_spending = abs(_safe_sum(include_spending["Amount"]))
+
+    # Refund offsets: positive amounts of Refund transactions marked Offset.
+    refund_offset_mask = (work["Type"] == "Refund") & (work["Include in Spending"] == "Offset")
+    refund_offsets = _safe_sum(work.loc[refund_offset_mask, "Amount"])
+    # Refund amounts are positive (Money In), so this is already positive.
+    refund_offsets = abs(refund_offsets)
+
+    net_spending = max(gross_spending - refund_offsets, 0.0)
+    net_cash_flow = total_income - net_spending
     savings_rate = (net_cash_flow / total_income) if not math.isclose(total_income, 0.0) else 0.0
 
     by_category = (
@@ -50,34 +60,56 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
         .reset_index()
     )
 
-    necessary_spending = abs(_safe_sum(include_spending.loc[include_spending["Necessary Label"] == "Necessary", "Amount"]))
-    possibly_unnecessary_spending = abs(
-        _safe_sum(include_spending.loc[include_spending["Necessary Label"] == "Possibly Unnecessary", "Amount"])
-    )
-    unnecessary_spending = abs(_safe_sum(include_spending.loc[include_spending["Necessary Label"] == "Unnecessary", "Amount"]))
+    necessary_mask = include_spending["Necessary Label"] == "Necessary"
+    possibly_unneeded_mask = include_spending["Necessary Label"] == "Possibly Unnecessary"
+    unnecessary_mask = include_spending["Necessary Label"] == "Unnecessary"
 
-    fee_interest = abs(
-        _safe_sum(
-            include_spending.loc[
-                (include_spending["Type"] == "Fee")
-                | include_spending["Raw Description"].fillna("").str.lower().str.contains("interest"),
-                "Amount",
-            ]
-        )
-    )
+    necessary_spending = abs(_safe_sum(include_spending.loc[necessary_mask, "Amount"]))
+    necessary_count = int(necessary_mask.sum())
+    possibly_unnecessary_spending = abs(_safe_sum(include_spending.loc[possibly_unneeded_mask, "Amount"]))
+    possibly_unnecessary_count = int(possibly_unneeded_mask.sum())
+    unnecessary_spending = abs(_safe_sum(include_spending.loc[unnecessary_mask, "Amount"]))
+    unnecessary_count = int(unnecessary_mask.sum())
 
-    refunds_credits = _safe_sum(work.loc[(work["Type"] == "Refund") & (work["Include in Spending"] == "Offset"), "Amount"])
-    transfers_excluded = abs(_safe_sum(work.loc[work["Type"] == "Transfer", "Amount"]))
-    payments_excluded = abs(_safe_sum(work.loc[work["Type"] == "Payment", "Amount"]))
+    fee_interest_mask = (include_spending["Type"] == "Fee") | include_spending["Raw Description"].fillna(
+        ""
+    ).str.lower().str.contains("interest")
+    fee_interest = abs(_safe_sum(include_spending.loc[fee_interest_mask, "Amount"]))
+
+    # Transfers and payments: only count the outgoing (Money Out) side to avoid
+    # the matched pair cancelling each other out (e.g. -500 + 500 = 0).
+    transfers_excluded = abs(
+        _safe_sum(work.loc[(work["Type"] == "Transfer") & (work["Amount"] < 0), "Amount"])
+    )
+    payments_excluded = abs(
+        _safe_sum(work.loc[(work["Type"] == "Payment") & (work["Amount"] < 0), "Amount"])
+    )
 
     top_purchases = (
         include_spending.sort_values("Amount", ascending=True)
-        .head(10)
-        [["Transaction ID", "Transaction Date", "Cleaned Merchant", "Amount", "Category", "Notes"]]
+        .head(10)[["Transaction ID", "Transaction Date", "Cleaned Merchant", "Amount", "Category", "Notes"]]
         .copy()
     )
     if not top_purchases.empty:
         top_purchases["Amount"] = top_purchases["Amount"].abs()
+
+    top_unnecessary = (
+        include_spending[unnecessary_mask]
+        .sort_values("Amount", ascending=True)
+        .head(10)[["Transaction ID", "Transaction Date", "Cleaned Merchant", "Amount", "Category", "Notes"]]
+        .copy()
+    )
+    if not top_unnecessary.empty:
+        top_unnecessary["Amount"] = top_unnecessary["Amount"].abs()
+
+    top_possibly_unnecessary = (
+        include_spending[possibly_unneeded_mask]
+        .sort_values("Amount", ascending=True)
+        .head(10)[["Transaction ID", "Transaction Date", "Cleaned Merchant", "Amount", "Category", "Notes"]]
+        .copy()
+    )
+    if not top_possibly_unnecessary.empty:
+        top_possibly_unnecessary["Amount"] = top_possibly_unnecessary["Amount"].abs()
 
     flagged_mask = (
         (work["Include in Spending"] == "Needs Review")
@@ -86,7 +118,7 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
         | work["Notes"].fillna("").str.lower().str.contains("duplicate|review")
     )
     flagged = work.loc[flagged_mask].copy()
-    top_flagged = flagged.head(10)[
+    top_flagged = flagged[
         ["Transaction ID", "Transaction Date", "Cleaned Merchant", "Amount", "Type", "Include in Spending", "Notes"]
     ]
 
@@ -107,14 +139,21 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
 
     summary = OrderedDict(
         total_income=round(total_income, 2),
-        total_spending=round(total_spending, 2),
+        gross_spending=round(gross_spending, 2),
+        refund_offsets=round(refund_offsets, 2),
+        net_spending=round(net_spending, 2),
+        # Keep total_spending as an alias for gross_spending for backward compatibility.
+        total_spending=round(gross_spending, 2),
         net_cash_flow=round(net_cash_flow, 2),
         savings_rate=savings_rate,
         necessary_spending=round(necessary_spending, 2),
+        necessary_count=necessary_count,
         possibly_unnecessary_spending=round(possibly_unnecessary_spending, 2),
+        possibly_unnecessary_count=possibly_unnecessary_count,
         unnecessary_spending=round(unnecessary_spending, 2),
+        unnecessary_count=unnecessary_count,
         fees_and_interest=round(fee_interest, 2),
-        refunds_and_credits=round(refunds_credits, 2),
+        refunds_and_credits=round(refund_offsets, 2),
         transfers_excluded=round(transfers_excluded, 2),
         credit_card_payments_excluded=round(payments_excluded, 2),
         review_needed_count=int(review_count),
@@ -126,6 +165,8 @@ def run_analytics(df: pd.DataFrame, month: str, review_issues: pd.DataFrame | No
         "spending_by_account": by_account,
         "spending_by_merchant": by_merchant,
         "top_purchases": top_purchases,
+        "top_unnecessary": top_unnecessary,
+        "top_possibly_unnecessary": top_possibly_unnecessary,
         "top_flagged": top_flagged,
         "subscriptions": subscriptions,
         "duplicate_candidates": duplicate_candidates,
