@@ -1,0 +1,20 @@
+default_labels:
+  Mortgage / Rent: Necessary
+  Utilities: Necessary
+  Insurance: Necessary
+  Groceries: Necessary
+  Medical: Necessary
+  Child / Family: Necessary
+  Pet Expenses: Necessary
+  Restaurants: Possibly Unnecessary
+  Entertainment: Possibly Unnecessary
+  Shopping: Possibly Unnecessary
+  Subscriptions: Possibly Unnecessary
+  Fees: Unnecessary
+  Needs Review: Needs Review
+  Other: Needs Review
+
+label_reasons:
+  Possibly Unnecessary: This looks discretionary and may be reduced to improve savings.
+  Unnecessary: This appears avoidable and should be reviewed for elimination.
+  Needs Review: This transaction could not be classified confidently.

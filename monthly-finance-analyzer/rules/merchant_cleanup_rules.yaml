@@ -1,0 +1,41 @@
+rules:
+  - canonical: Walmart
+    patterns: [wal-mart, walmart supercenter, wm supercenter, walmart]
+  - canonical: Costco
+    patterns: [costco]
+  - canonical: Aldi
+    patterns: [aldi]
+  - canonical: Sam's Club
+    patterns: [sam's club, sams club]
+  - canonical: Amazon
+    patterns: [amazon, amzn]
+  - canonical: Target
+    patterns: [target]
+  - canonical: Jewel
+    patterns: [jewel]
+  - canonical: Meijer
+    patterns: [meijer]
+  - canonical: Chewy
+    patterns: [chewy]
+  - canonical: PetSmart
+    patterns: [petsmart]
+  - canonical: Netflix
+    patterns: [netflix]
+  - canonical: Spotify
+    patterns: [spotify]
+  - canonical: Apple
+    patterns: [apple]
+  - canonical: Google
+    patterns: [google]
+  - canonical: Shell
+    patterns: [shell]
+  - canonical: BP
+    patterns: [bp]
+  - canonical: ComEd
+    patterns: [comed]
+  - canonical: Nicor
+    patterns: [nicor]
+  - canonical: Mortgage
+    patterns: [mortgage]
+  - canonical: Insurance
+    patterns: [insurance]

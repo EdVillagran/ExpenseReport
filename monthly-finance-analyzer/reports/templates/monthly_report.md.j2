@@ -1,0 +1,58 @@
+# Monthly Financial Report: {{ month_label }}
+
+## 1. Executive Summary
+- Total Income: {{ "%.2f"|format(summary.total_income) }}
+- Total Spending: {{ "%.2f"|format(summary.total_spending) }}
+- Net Cash Flow: {{ "%.2f"|format(summary.net_cash_flow) }}
+- Savings Rate: {{ "%.2f"|format(summary.savings_rate * 100) }}%
+- Review Needed Count: {{ summary.review_needed_count }}
+
+## 2. Income Overview
+- Total income for {{ month }}: {{ "%.2f"|format(summary.total_income) }}
+
+## 3. Expense Overview
+- Total included spending: {{ "%.2f"|format(summary.total_spending) }}
+- Fees and interest: {{ "%.2f"|format(summary.fees_and_interest) }}
+- Refunds and credits (offset): {{ "%.2f"|format(summary.refunds_and_credits) }}
+
+## 4. Category Breakdown
+{% for row in by_category %}- {{ row.Category }}: {{ "%.2f"|format(row.Spending) }}
+{% else %}- No category spending data.
+{% endfor %}
+
+## 5. Necessary vs Unnecessary Spending
+- Necessary: {{ "%.2f"|format(summary.necessary_spending) }}
+- Possibly Unnecessary: {{ "%.2f"|format(summary.possibly_unnecessary_spending) }}
+- Unnecessary: {{ "%.2f"|format(summary.unnecessary_spending) }}
+
+## 6. Largest Purchases
+{% for row in top_purchases %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: {{ "%.2f"|format(row.Amount) }}
+{% else %}- No included purchases.
+{% endfor %}
+
+## 7. Subscriptions and Recurring Charges
+{% for row in subscriptions %}- {{ row["Cleaned Merchant"] }} ({{ row.Count }} charges, {{ "%.2f"|format(row.Total) }})
+{% else %}- No recurring subscription candidates found.
+{% endfor %}
+
+## 8. Transfers, Refunds, and Payments
+- Transfers excluded: {{ "%.2f"|format(summary.transfers_excluded) }}
+- Credit card payments excluded: {{ "%.2f"|format(summary.credit_card_payments_excluded) }}
+- Refunds/credits offset: {{ "%.2f"|format(summary.refunds_and_credits) }}
+
+## 9. Trends and Patterns
+{{ trend_note }}
+
+## 10. Potential Savings
+- Consider reviewing possibly unnecessary spending of {{ "%.2f"|format(summary.possibly_unnecessary_spending) }}.
+- Consider reducing unnecessary spending of {{ "%.2f"|format(summary.unnecessary_spending) }}.
+
+## 11. Action Plan for Next Month
+- Review all flagged transactions and confirm categories.
+- Eliminate avoidable fees and duplicate charges.
+- Revisit subscriptions and discretionary spending.
+
+## 12. Data Quality / Review Needed
+{% for row in top_flagged %}- {{ row["Transaction ID"] }}: {{ row["Notes"] }}
+{% else %}- No flagged transactions in top sample.
+{% endfor %}
