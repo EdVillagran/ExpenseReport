@@ -46,7 +46,7 @@ def test_output_workbook_has_expected_sheets(pipeline_result):
     wb = openpyxl.load_workbook(pipeline_result["workbook_path"])
     expected_sheets = {
         "Master Transactions",
-        "Category Summary",
+        "Gross Spending by Category",
         "Necessary vs Unnecessary",
         "Flagged Transactions",
         "Transfers and Payments",

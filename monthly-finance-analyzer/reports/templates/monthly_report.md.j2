@@ -22,20 +22,19 @@
 - Refund offsets: ${{ "%.2f"|format(summary.refund_offsets) }}
 - Net spending: ${{ "%.2f"|format(summary.net_spending) }}
 - Fees and interest: ${{ "%.2f"|format(summary.fees_and_interest) }}
-- Transfers excluded: ${{ "%.2f"|format(summary.transfers_excluded) }}
-- Credit card payments excluded: ${{ "%.2f"|format(summary.credit_card_payments_excluded) }}
+- Transfers excluded (outgoing side): ${{ "%.2f"|format(summary.transfers_excluded) }}
+- Credit card payments excluded (outgoing side): ${{ "%.2f"|format(summary.credit_card_payments_excluded) }}
 
 ## 4. Category Breakdown
 {% for row in by_category %}- {{ row.Category }}: ${{ "%.2f"|format(row.Spending) }}
 {% else %}- No category spending data.
 {% endfor %}
-
-## 5. Spending by Account
+### Spending by Account
 {% for row in by_account %}- {{ row.Account }}: ${{ "%.2f"|format(row.Spending) }}
 {% else %}- No account spending data.
 {% endfor %}
 
-## 6. Necessary vs Unnecessary Spending
+## 5. Necessary vs Unnecessary Spending
 - Necessary: ${{ "%.2f"|format(summary.necessary_spending) }} ({{ summary.necessary_count }} transactions)
 - Possibly Unnecessary: ${{ "%.2f"|format(summary.possibly_unnecessary_spending) }} ({{ summary.possibly_unnecessary_count }} transactions)
 - Unnecessary: ${{ "%.2f"|format(summary.unnecessary_spending) }} ({{ summary.unnecessary_count }} transactions)
@@ -45,50 +44,46 @@ Possibly unnecessary spending was ${{ "%.2f"|format(summary.possibly_unnecessary
 {%- endif %}
 {% if summary.unnecessary_spending > 0 %}
 Unnecessary spending (fees, avoidable charges) was ${{ "%.2f"|format(summary.unnecessary_spending) }}. Eliminating these would directly improve net cash flow.
-{% endif %}
 
-## 7. Largest Purchases
-{% for row in top_purchases %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: ${{ "%.2f"|format(row.Amount) }} ({{ row.Category }})
-{% else %}- No included purchases.
-{% endfor %}
-
-## 8. Top Unnecessary Purchases
+Top unnecessary purchases:
 {% for row in top_unnecessary %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: ${{ "%.2f"|format(row.Amount) }} ({{ row.Category }})
 {% else %}- No unnecessary purchases flagged.
-{% endfor %}
-
-## 9. Top Possibly Unnecessary Purchases
+{% endfor %}{% endif %}
+Top possibly unnecessary purchases:
 {% for row in top_possibly_unnecessary %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: ${{ "%.2f"|format(row.Amount) }} ({{ row.Category }})
 {% else %}- No possibly unnecessary purchases flagged.
 {% endfor %}
 
-## 10. Subscriptions and Recurring Charges
+## 6. Largest Purchases
+{% for row in top_purchases %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: ${{ "%.2f"|format(row.Amount) }} ({{ row.Category }})
+{% else %}- No included purchases.
+{% endfor %}
+
+## 7. Subscriptions and Recurring Charges
 {% for row in subscriptions %}- {{ row["Cleaned Merchant"] }} ({{ row.Count }} charges, ${{ "%.2f"|format(row.Total) }})
 {% else %}- No recurring subscription candidates found.
 {% endfor %}
+Total fees and interest: ${{ "%.2f"|format(summary.fees_and_interest) }}
 
-## 11. Fees and Interest
-- Total fees and interest: ${{ "%.2f"|format(summary.fees_and_interest) }}
-{% for row in top_unnecessary %}{% if row.Category == "Fees" %}- {{ row["Cleaned Merchant"] }} on {{ row["Transaction Date"] }}: ${{ "%.2f"|format(row.Amount) }}
-{% endif %}{% endfor %}
-
-## 12. Transfers, Refunds, and Payments
+## 8. Transfers, Refunds, and Payments
 - Transfers excluded (outgoing side): ${{ "%.2f"|format(summary.transfers_excluded) }}
 - Credit card payments excluded (outgoing side): ${{ "%.2f"|format(summary.credit_card_payments_excluded) }}
 - Refund offsets applied to net spending: ${{ "%.2f"|format(summary.refund_offsets) }}
 
-## 13. Trends and Patterns
+## 9. Trends and Patterns
 {{ trend_note }}
 
-## 14. Potential Savings
-
-### Action Plan for Next Month
+## 10. Potential Savings
 {% if summary.possibly_unnecessary_spending > 0 %}- Possibly unnecessary spending was ${{ "%.2f"|format(summary.possibly_unnecessary_spending) }}. Reducing this by 30% next month could save about ${{ "%.2f"|format(summary.possibly_unnecessary_spending * 0.30) }}.
 {% endif %}{% if summary.unnecessary_spending > 0 %}- Unnecessary spending (fees, avoidable charges) was ${{ "%.2f"|format(summary.unnecessary_spending) }}. Work to eliminate these entirely.
 {% endif %}- Review all subscriptions. Cancel any you no longer use actively.
-- Eliminate avoidable fees and duplicate charges.
 
-## 15. Review Needed
+## 11. Action Plan for Next Month
+- Review all flagged transactions and confirm categories.
+- Eliminate avoidable fees and duplicate charges.
+- Revisit subscriptions and discretionary spending.
+
+## 12. Data Quality / Review Needed
 - {{ summary.review_needed_count }} rows require manual review before results can be trusted.
 
 {% for row in top_flagged %}- {{ row["Transaction ID"] }}: {{ row["Notes"] }}

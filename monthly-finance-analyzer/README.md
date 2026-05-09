@@ -100,13 +100,13 @@ Outputs go to:
 
 ## Output workbook tabs
 - **Master Transactions** — all transactions with pipeline-enriched fields
-- **Category Summary** — net spending by category
+- **Gross Spending by Category** — gross spending per category (before refund offsets)
 - **Necessary vs Unnecessary** — amount, count, and percent of net spending per necessity label
 - **Flagged Transactions** — all rows flagged for review
 - **Transfers and Payments** — transfer/payment/refund/reversal rows with matched pair info
 - **Subscriptions** — recurring charges grouped by merchant
 - **Monthly Summary** — key financial metrics (gross spending, refund offsets, net spending, etc.)
-- **Data Quality Issues** — validation issues that need resolution before trusting the report
+- **Data Quality Issues** — validation issues plus post-enrichment concerns (unknown category, unknown merchant, Needs Review inclusion, potential duplicates, low confidence scores)
 
 ## Gross Spending vs Net Spending
 - **Gross Spending** = sum of all included expenses and fees (before any refunds).
@@ -115,6 +115,10 @@ Outputs go to:
 - **Net Cash Flow** = Total Income − Net Spending.
 - The Markdown report and Monthly Summary sheet always show all three so you can tell how much came back.
 
+> **Note on `total_spending`:** The Monthly Summary sheet includes a `total_spending` field.
+> This is retained as a backward-compatible alias for `gross_spending`.
+> Use `net_spending` for financial reporting and cash flow calculations.
+
 ## Resolving Data Quality Issues
 1. Open `Data Quality Issues` in the output workbook.
 2. For each row, go back to your input workbook and correct the flagged field.
@@ -122,18 +126,19 @@ Outputs go to:
 4. Do not trust totals or savings rates until all `Needs Review` rows are resolved.
 
 ## Report usage
-The Markdown report includes:
-- Executive summary with gross spending, refund offsets, and net spending
-- Income and expense overview
-- Category breakdown and spending by account
-- Necessary vs Unnecessary breakdown with counts
-- Largest purchases
-- Top unnecessary and possibly unnecessary purchases
-- Subscriptions
-- Fees and interest detail
-- Transfers, refunds, and payments summary
-- Practical action plan with specific dollar amounts
-- Review Needed section listing all flagged rows
+The Markdown report follows a 12-section structure:
+1. Executive summary (gross spending, refund offsets, net spending, savings rate)
+2. Income overview
+3. Expense overview (gross/net breakdown, fees, transfers and payments excluded)
+4. Category breakdown and spending by account
+5. Necessary vs Unnecessary breakdown with counts and top flagged purchases
+6. Largest purchases
+7. Subscriptions and recurring charges including fees total
+8. Transfers, refunds, and payments summary
+9. Trends and patterns
+10. Potential savings with specific dollar amounts
+11. Action plan for next month
+12. Data quality / review needed items
 
 ## Known limitations
 - Deterministic keyword and pattern matching can miss edge-case merchants.
