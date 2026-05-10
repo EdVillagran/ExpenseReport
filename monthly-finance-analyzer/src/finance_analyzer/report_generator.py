@@ -23,6 +23,8 @@ def generate_report(month: str, analytics_result: dict, template_path: Path, out
         by_account=analytics_result["spending_by_account"].to_dict(orient="records"),
         by_merchant=analytics_result["spending_by_merchant"].head(10).to_dict(orient="records"),
         top_purchases=analytics_result["top_purchases"].to_dict(orient="records"),
+        top_unnecessary=analytics_result["top_unnecessary"].to_dict(orient="records"),
+        top_possibly_unnecessary=analytics_result["top_possibly_unnecessary"].to_dict(orient="records"),
         top_flagged=analytics_result["top_flagged"].to_dict(orient="records"),
         subscriptions=analytics_result["subscriptions"].to_dict(orient="records"),
         trend_note="No prior-month data was provided, so trend analysis is limited.",

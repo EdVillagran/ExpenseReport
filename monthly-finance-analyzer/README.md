@@ -2,6 +2,8 @@
 
 A local-first, deterministic Python pipeline for monthly personal finance analysis from a single manually maintained Excel workbook.
 
+> ⚠️ **Do not rely on this for final financial decisions until all Review Needed rows are resolved.**
+
 ## Why local/offline
 - Runs entirely on your machine.
 - No bank syncing, no cloud APIs, no telemetry, no model calls.
@@ -38,12 +40,41 @@ The input workbook must include a tab named **Transactions** with these required
 
 ### Key validation rules
 - Month: `YYYY-MM`
-- Amount: numeric
-- Expenses negative, income positive
+- Amount: numeric; expenses are **negative**, income is **positive**
 - Direction: `Money In` or `Money Out`
 - Type: `Income | Expense | Transfer | Fee | Refund | Payment | Reversal | Unknown`
 - Include in Spending: `Include | Exclude | Offset | Needs Review`
 - Necessary Label: `Necessary | Possibly Unnecessary | Unnecessary | Needs Review`
+- Posted Date may be left blank; only a non-blank unparseable value is flagged.
+
+## How to fill out the workbook
+
+### Entering regular expenses
+- Set **Amount** to a negative number (e.g. `-42.50`).
+- Set **Direction** to `Money Out`, **Type** to `Expense`, **Include in Spending** to `Include`.
+
+### Entering income
+- Set **Amount** to a positive number, **Direction** to `Money In`, **Type** to `Income`, **Include in Spending** to `Exclude`.
+
+### Entering refunds
+- Enter the refund as a positive **Amount** (money came back to you).
+- Set **Direction** to `Money In`, **Type** to `Refund`, **Include in Spending** to `Offset`.
+- The pipeline will subtract refund offsets from gross spending to calculate **Net Spending**.
+
+### Entering transfers (checking → savings)
+- Enter both sides of the transfer (outgoing negative, incoming positive).
+- Set **Type** to `Transfer` and **Include in Spending** to `Exclude` on **both** rows.
+- The pipeline counts only the outgoing (negative) side as **Transfers Excluded**; the pair does not cancel to zero.
+
+### Entering credit card payments
+- Enter the payment from checking (negative amount, `Money Out`) and the payment received on the credit card (positive amount, `Money In`).
+- Set **Type** to `Payment` and **Include in Spending** to `Exclude` on **both** rows.
+- Only the outgoing side is reported under **Credit Card Payments Excluded**.
+
+### Marking unknown merchants
+- Leave **Category** and **Necessary Label** as `Needs Review`.
+- Set **Include in Spending** to `Needs Review` if you are unsure whether to count it.
+- Set **Reviewed** to `False` so the pipeline flags it in the Data Quality Issues sheet.
 
 ## Run analyzer
 ```bash
@@ -62,20 +93,56 @@ Outputs go to:
 - Necessity labels: `rules/necessity_rules.yaml`
 - Transfer/payment matching: `rules/transfer_rules.yaml`
 
+### Updating YAML rules
+- Open the relevant YAML file in any text editor.
+- Add a new entry under `rules:` with `category`, `subcategory`, `patterns`, and `confidence`.
+- Patterns use word-boundary matching — short words like `fee` will not accidentally match `coffee`.
+
 ## Output workbook tabs
-- Master Transactions
-- Category Summary
-- Necessary vs Unnecessary
-- Flagged Transactions
-- Transfers and Payments
-- Subscriptions
-- Monthly Summary
-- Data Quality Issues
+- **Master Transactions** — all transactions with pipeline-enriched fields
+- **Gross Spending by Category** — gross spending per category (before refund offsets)
+- **Necessary vs Unnecessary** — amount, count, and percent of net spending per necessity label
+- **Flagged Transactions** — all rows flagged for review
+- **Transfers and Payments** — transfer/payment/refund/reversal rows with matched pair info
+- **Subscriptions** — recurring charges grouped by merchant
+- **Monthly Summary** — key financial metrics (gross spending, refund offsets, net spending, etc.)
+- **Data Quality Issues** — validation issues plus post-enrichment concerns (unknown category, unknown merchant, Needs Review inclusion, potential duplicates, low confidence scores)
+
+## Gross Spending vs Net Spending
+- **Gross Spending** = sum of all included expenses and fees (before any refunds).
+- **Refund Offsets** = sum of refund transactions marked `Offset` in *Include in Spending*.
+- **Net Spending** = Gross Spending − Refund Offsets.
+- **Net Cash Flow** = Total Income − Net Spending.
+- The Markdown report and Monthly Summary sheet always show all three so you can tell how much came back.
+
+> **Note on `total_spending`:** The Monthly Summary sheet includes a `total_spending` field.
+> This is retained as a backward-compatible alias for `gross_spending`.
+> Use `net_spending` for financial reporting and cash flow calculations.
+
+## Resolving Data Quality Issues
+1. Open `Data Quality Issues` in the output workbook.
+2. For each row, go back to your input workbook and correct the flagged field.
+3. Re-run the pipeline until no critical issues remain.
+4. Do not trust totals or savings rates until all `Needs Review` rows are resolved.
 
 ## Report usage
-The Markdown report includes executive summary, income/expense views, category breakdown, necessity split, top purchases, subscriptions, transfers/refunds/payments, trends note, savings opportunities, action plan, and data quality section.
+The Markdown report follows a 12-section structure:
+1. Executive summary (gross spending, refund offsets, net spending, savings rate)
+2. Income overview
+3. Expense overview (gross/net breakdown, fees, transfers and payments excluded)
+4. Category breakdown and spending by account
+5. Necessary vs Unnecessary breakdown with counts and top flagged purchases
+6. Largest purchases
+7. Subscriptions and recurring charges including fees total
+8. Transfers, refunds, and payments summary
+9. Trends and patterns
+10. Potential savings with specific dollar amounts
+11. Action plan for next month
+12. Data quality / review needed items
 
 ## Known limitations
 - Deterministic keyword and pattern matching can miss edge-case merchants.
 - Transfer/payment matching is heuristic and may require manual review.
 - Trend analysis is limited without prior-month data.
+- Do not rely on this tool for final financial decisions until all Review Needed rows are resolved.
+

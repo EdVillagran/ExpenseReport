@@ -105,7 +105,7 @@ rules:
     subcategory: Bank Fee
     confidence: 0.95
     reason: Matched fee keyword.
-    patterns: [fee, overdraft, late fee]
+    patterns: [fee, overdraft, late fee, interest, interest charge]
 
   - category: Refunds / Credits
     subcategory: Refund

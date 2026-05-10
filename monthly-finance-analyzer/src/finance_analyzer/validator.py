@@ -78,7 +78,9 @@ def validate_transactions(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
 
         if pd.isna(row["Transaction Date Parsed"]):
             _append_issue(issues, row, "Invalid date", "Transaction Date")
-        if pd.isna(row["Posted Date Parsed"]):
+        # Blank Posted Date is allowed; only flag a non-blank value that cannot be parsed.
+        posted_raw = _string(row.get("Posted Date", ""))
+        if posted_raw != "" and pd.isna(row["Posted Date Parsed"]):
             _append_issue(issues, row, "Invalid date", "Posted Date")
         if pd.isna(row["Amount"]):
             _append_issue(issues, row, "Invalid amount", "Amount must be numeric")
